@@ -1,0 +1,9 @@
+node_modules
+.nuxt
+.output
+.git
+*.md
+coverage
+.env
+.env.*
+!.env.example
