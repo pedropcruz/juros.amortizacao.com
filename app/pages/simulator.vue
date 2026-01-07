@@ -173,9 +173,7 @@ const columns = [
 
 function openEarlyRepayment() {
   showEarlyRepayment.value = true
-  if ($posthog) {
-    $posthog().capture('early_repayment_opened')
-  }
+  $posthog?.()?.capture('early_repayment_opened')
 }
 
 // Save simulation handler
@@ -217,12 +215,10 @@ async function saveSimulation() {
     showSaveModal.value = false
     simulationName.value = ''
 
-    if ($posthog) {
-      $posthog().capture('simulation_saved', {
-        principal: state.principal,
-        term_years: state.termYears
-      })
-    }
+    $posthog?.()?.capture('simulation_saved', {
+      principal: state.principal,
+      term_years: state.termYears
+    })
   } catch (e) {
     toast.add({
       title: 'Erro ao guardar',
@@ -283,15 +279,13 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     result.value = response
     tableRows.value = response.table
 
-    if ($posthog) {
-      $posthog().capture('calculation_performed', {
-        principal: event.data.principal,
-        term_years: event.data.termYears,
-        tan: tan.value,
-        rate_type: state.rateType,
-        monthly_payment: response.summary.monthlyPayment
-      })
-    }
+    $posthog?.()?.capture('calculation_performed', {
+      principal: event.data.principal,
+      term_years: event.data.termYears,
+      tan: tan.value,
+      rate_type: state.rateType,
+      monthly_payment: response.summary.monthlyPayment
+    })
 
     await nextTick()
     resultsSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })

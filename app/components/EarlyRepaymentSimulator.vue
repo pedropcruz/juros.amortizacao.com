@@ -97,17 +97,15 @@ function onSubmit(_event: FormSubmitEvent<Schema>) {
 
   result.value = finalResult
 
-  if ($posthog) {
-    $posthog().capture('early_repayment_calculated', {
-      repayment_amount: state.repaymentAmount,
-      strategy: state.strategy,
-      fee_exemption: state.feeExemption,
-      rate_type: state.rateType,
-      months_reduced: finalResult.monthsReduced || 0,
-      monthly_savings: finalResult.monthlySavings || 0,
-      total_interest_saved: finalResult.totalInterestSaved || 0
-    })
-  }
+  $posthog?.()?.capture('early_repayment_calculated', {
+    repayment_amount: state.repaymentAmount,
+    strategy: state.strategy,
+    fee_exemption: state.feeExemption,
+    rate_type: state.rateType,
+    months_reduced: finalResult.monthsReduced || 0,
+    monthly_savings: finalResult.monthlySavings || 0,
+    total_interest_saved: finalResult.totalInterestSaved || 0
+  })
 }
 
 // Format currency
