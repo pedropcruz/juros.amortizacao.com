@@ -1,9 +1,13 @@
 {
-  // Disable default formatter - let ESLint handle everything
-  "editor.formatOnSave": false,
+  // Let ESLint handle formatting on save
+  "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "always"
   },
+
+  // Remove trailing whitespace (the #1 issue you had)
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
 
   // ESLint as formatter for code files
   "eslint.format.enable": true,

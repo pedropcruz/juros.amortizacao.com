@@ -61,7 +61,7 @@ export function usePdfExport() {
     }
   }
 
-  const formatEuriborPeriod = (period?: string): string => {
+  const _formatEuriborPeriod = (period?: string): string => {
     switch (period) {
       case '3m': return '3 meses'
       case '6m': return '6 meses'
@@ -94,7 +94,7 @@ export function usePdfExport() {
     doc.setFontSize(18)
     doc.setFont('helvetica', 'bold')
     doc.text(simulation.name || 'Simulação de Crédito Habitação', 20, yPos)
-    
+
     // Date on the right
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
@@ -112,13 +112,13 @@ export function usePdfExport() {
     doc.setFontSize(12)
     doc.setFont('helvetica', 'bold')
     doc.text('Resumo', 20, yPos)
-    
+
     yPos += 6
-    
+
     // Draw a simple line under header
     doc.setDrawColor(200, 200, 200)
     doc.line(20, yPos, pageWidth - 20, yPos)
-    
+
     yPos += 10
 
     // Summary Grid - More compact
@@ -197,7 +197,7 @@ export function usePdfExport() {
     if (includeFullTable) {
       doc.addPage()
       yPos = 20
-      
+
       doc.setFontSize(12)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...textColor)
@@ -238,15 +238,15 @@ export function usePdfExport() {
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...textColor)
       doc.text('Resumo Anual', 20, yPos)
-      
+
       yPos += 6
       doc.line(20, yPos, pageWidth - 20, yPos)
       yPos += 8
 
       // Group by year
-      const annualData: { [key: number]: { interest: number; principal: number; total: number; balance: number } } = {}
-      
-      simulation.amortizationTable.forEach(row => {
+      const annualData: { [key: number]: { interest: number, principal: number, total: number, balance: number } } = {}
+
+      simulation.amortizationTable.forEach((row) => {
         const year = Math.ceil(row.paymentNumber / 12)
         if (!annualData[year]) {
           annualData[year] = { interest: 0, principal: 0, total: 0, balance: 0 }
@@ -291,7 +291,7 @@ export function usePdfExport() {
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i)
       const pageHeight = doc.internal.pageSize.getHeight()
-      
+
       doc.setFontSize(8)
       doc.setTextColor(...mutedColor)
       doc.text(

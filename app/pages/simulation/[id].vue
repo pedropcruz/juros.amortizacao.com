@@ -16,10 +16,10 @@ const showExportOptions = ref(false)
 
 async function handleExportPdf(includeFullTable = false) {
   if (!simulation.value) return
-  
+
   isExporting.value = true
   showExportOptions.value = false
-  
+
   try {
     const filename = exportSimulationPdf(simulation.value, includeFullTable)
     toast.add({
@@ -28,7 +28,7 @@ async function handleExportPdf(includeFullTable = false) {
       color: 'success',
       icon: 'i-lucide-check-circle'
     })
-  } catch (error) {
+  } catch {
     toast.add({
       title: 'Erro ao exportar',
       description: 'Não foi possível gerar o PDF. Tente novamente.',
@@ -96,17 +96,17 @@ const { data: simulation, pending: isLoading, error } = await useFetch<Simulatio
 const earlyRepaymentFee = computed(() => {
   if (!simulation.value) return null
   // We use current balance from first row (or loan amount if new) but usually current balance decreases.
-  // For "Cost to exit NOW", we should look at remaining balance. 
+  // For "Cost to exit NOW", we should look at remaining balance.
   // But wait, the simulation is static. It shows the plan from start.
   // Ideally, "Cost to exit" depends on WHEN you exit.
-  // For now, let's show the cost based on the INITIAL loan amount as a reference, 
-  // OR the current balance if we had tracking. Since this is a simulation view, 
-  // let's show the fee for the FULL amount (as if cancelling immediately after contracting) 
+  // For now, let's show the cost based on the INITIAL loan amount as a reference,
+  // OR the current balance if we had tracking. Since this is a simulation view,
+  // let's show the fee for the FULL amount (as if cancelling immediately after contracting)
   // or maybe just explain the rate.
   // Actually, showing it based on loanAmount is a good baseline.
-  
+
   return calculateEarlyRepaymentFee(
-    simulation.value.loanAmount, 
+    simulation.value.loanAmount,
     simulation.value.rateType || 'variable'
   )
 })
@@ -322,7 +322,7 @@ function formatTermYears(months: number): string {
               <span class="text-lg font-semibold text-gray-900 dark:text-white">
                 {{ formatRateType(simulation.rateType) }}
               </span>
-              <span 
+              <span
                 v-if="simulation.rateType === 'variable' || simulation.rateType === 'mixed'"
                 class="text-xs text-gray-500"
               >
@@ -334,7 +334,10 @@ function formatTermYears(months: number): string {
       </UCard>
 
       <!-- Early Repayment Info -->
-      <UCard v-if="earlyRepaymentFee" class="mb-8 bg-orange-50 dark:bg-orange-950/10 border-orange-100 dark:border-orange-900/30">
+      <UCard
+        v-if="earlyRepaymentFee"
+        class="mb-8 bg-orange-50 dark:bg-orange-950/10 border-orange-100 dark:border-orange-900/30"
+      >
         <div class="flex items-start gap-4">
           <div class="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
             <UIcon
@@ -360,7 +363,11 @@ function formatTermYears(months: number): string {
       </UCard>
 
       <!-- Revision Scenario (If Impact Exists) -->
-      <UCard v-if="revisionImpact && revisionImpact.impact !== 0" class="mb-8 overflow-hidden border-2" :class="revisionImpact.type === 'danger' ? 'border-red-100 dark:border-red-900/30' : 'border-green-100 dark:border-green-900/30'">
+      <UCard
+        v-if="revisionImpact && revisionImpact.impact !== 0"
+        class="mb-8 overflow-hidden border-2"
+        :class="revisionImpact.type === 'danger' ? 'border-red-100 dark:border-red-900/30' : 'border-green-100 dark:border-green-900/30'"
+      >
         <template #header>
           <div class="flex items-center gap-2">
             <UIcon
@@ -385,23 +392,36 @@ function formatTermYears(months: number): string {
           <div class="space-y-6">
             <div class="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
               <div>
-                <p class="text-sm text-gray-500 mb-1">Prestação Atual</p>
+                <p class="text-sm text-gray-500 mb-1">
+                  Prestação Atual
+                </p>
                 <p class="text-xl font-bold text-gray-900 dark:text-white">
-                  {{ formatCurrency(revisionImpact.oldPayment) }}
+                  {{ formatCurrency(revisionImpact.oldPayment ?? 0) }}
                 </p>
               </div>
-              <UIcon name="i-lucide-arrow-right" class="w-6 h-6 text-gray-400" />
+              <UIcon
+                name="i-lucide-arrow-right"
+                class="w-6 h-6 text-gray-400"
+              />
               <div class="text-right">
-                <p class="text-sm text-gray-500 mb-1">Nova Prestação</p>
-                <p class="text-xl font-bold" :class="revisionImpact.type === 'danger' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'">
-                  {{ formatCurrency(revisionImpact.newPayment) }}
+                <p class="text-sm text-gray-500 mb-1">
+                  Nova Prestação
+                </p>
+                <p
+                  class="text-xl font-bold"
+                  :class="revisionImpact.type === 'danger' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'"
+                >
+                  {{ formatCurrency(revisionImpact.newPayment ?? 0) }}
                 </p>
               </div>
             </div>
 
             <div class="flex justify-between items-center text-sm">
               <span class="text-gray-500">Diferença mensal:</span>
-              <span class="font-bold text-lg" :class="revisionImpact.type === 'danger' ? 'text-red-600' : 'text-green-600'">
+              <span
+                class="font-bold text-lg"
+                :class="revisionImpact.type === 'danger' ? 'text-red-600' : 'text-green-600'"
+              >
                 {{ revisionImpact.impact > 0 ? '+' : '' }}{{ formatCurrency(revisionImpact.impact) }}
               </span>
             </div>

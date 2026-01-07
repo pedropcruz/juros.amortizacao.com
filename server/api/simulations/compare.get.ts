@@ -23,19 +23,19 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = useDatabase()
-  
+
   // Check if user is Pro
   const user = await db.query.user.findFirst({
-      where: eq(schema.user.id, session.user.id),
-      columns: { isPro: true }
+    where: eq(schema.user.id, session.user.id),
+    columns: { isPro: true }
   })
 
   if (!user?.isPro) {
-      throw createError({
-          statusCode: 403,
-          statusMessage: 'Comparar simulações é uma funcionalidade Pro',
-          data: { code: 'PRO_REQUIRED' }
-      })
+    throw createError({
+      statusCode: 403,
+      statusMessage: 'Comparar simulações é uma funcionalidade Pro',
+      data: { code: 'PRO_REQUIRED' }
+    })
   }
 
   const query = getQuery(event)
@@ -82,7 +82,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Return simulations in the order requested
-    const orderedSimulations = ids.map(id => 
+    const orderedSimulations = ids.map(id =>
       simulations.find(s => s.publicId === id)
     ).filter(Boolean)
 

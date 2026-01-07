@@ -32,26 +32,26 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
-    async sendResetPassword(data: any, request?: Request) {
+    async sendResetPassword({ user, url }: { user: { email: string, name: string }, url: string }) {
       await resend.emails.send({
         from: process.env.EMAIL_FROM || 'Juros <onboarding@resend.dev>',
-        to: data.user.email,
+        to: user.email,
         subject: 'Redefinir palavra-passe - Juros',
-        html: `<p>Olá ${data.user.name},</p>
+        html: `<p>Olá ${user.name},</p>
 <p>Recebemos um pedido para redefinir a sua palavra-passe.</p>
 <p>Clique no link abaixo para criar uma nova palavra-passe:</p>
-<a href="${data.url}">Redefinir Palavra-passe</a>
+<a href="${url}">Redefinir Palavra-passe</a>
 <p>Se não pediu esta alteração, pode ignorar este email.</p>`
       })
     },
-    async sendEmailVerification(data: any, request?: Request) {
+    async sendEmailVerification({ user, url }: { user: { email: string, name: string }, url: string }) {
       await resend.emails.send({
         from: process.env.EMAIL_FROM || 'Juros <onboarding@resend.dev>',
-        to: data.user.email,
+        to: user.email,
         subject: 'Verifique o seu email - Juros',
-        html: `<p>Olá ${data.user.name},</p>
+        html: `<p>Olá ${user.name},</p>
 <p>Bem-vindo ao Juros! Por favor verifique o seu email para ativar a sua conta.</p>
-<a href="${data.url}">Verificar Email</a>`
+<a href="${url}">Verificar Email</a>`
       })
     }
   },

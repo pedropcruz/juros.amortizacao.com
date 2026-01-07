@@ -124,8 +124,8 @@ async function deleteSimulation() {
   deletingId.value = simulationToDelete.value.id
 
   try {
-    await $fetch<void>(`/api/simulations/${simulationToDelete.value.id}`, {
-      method: 'DELETE' as const
+    await ($fetch as typeof globalThis.fetch)(`/api/simulations/${simulationToDelete.value.id}`, {
+      method: 'DELETE'
     })
 
     toast.add({

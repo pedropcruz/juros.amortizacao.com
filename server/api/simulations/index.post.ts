@@ -72,31 +72,31 @@ export default defineEventHandler(async (event) => {
 
   // Check Free Plan Limits
   const user = await db.query.user.findFirst({
-      where: eq(schema.user.id, session.user.id),
-      columns: {
-          isPro: true
-      }
+    where: eq(schema.user.id, session.user.id),
+    columns: {
+      isPro: true
+    }
   })
 
   if (!user?.isPro) {
-      // Count existing simulations
-      const [result] = await db
-          .select({ count: count() })
-          .from(schema.simulations)
-          .where(eq(schema.simulations.userId, session.user.id))
-      
-      const simulationCount = result?.count || 0
-      
-      if (simulationCount >= 3) {
-          throw createError({
-              statusCode: 403,
-              statusMessage: 'Limite de simulações atingido (Máximo 3). Atualize para Pro para guardar ilimitado.',
-              data: {
-                  code: 'LIMIT_REACHED',
-                  limit: 3
-              }
-          })
-      }
+    // Count existing simulations
+    const [result] = await db
+      .select({ count: count() })
+      .from(schema.simulations)
+      .where(eq(schema.simulations.userId, session.user.id))
+
+    const simulationCount = result?.count || 0
+
+    if (simulationCount >= 3) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: 'Limite de simulações atingido (Máximo 3). Atualize para Pro para guardar ilimitado.',
+        data: {
+          code: 'LIMIT_REACHED',
+          limit: 3
+        }
+      })
+    }
   }
 
   const body = await readBody(event)

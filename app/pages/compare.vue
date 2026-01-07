@@ -55,18 +55,20 @@ const { data: simulations, pending: isLoading, error } = await useFetch<Simulati
 
 if (error.value) {
   const isProError = error.value.statusCode === 403
-  
+
   toast.add({
     title: isProError ? 'Funcionalidade Pro' : 'Erro ao carregar',
-    description: isProError 
-      ? 'A comparação de cenários está disponível apenas no plano Pro.' 
+    description: isProError
+      ? 'A comparação de cenários está disponível apenas no plano Pro.'
       : 'Não foi possível carregar as simulações para comparação.',
     color: isProError ? 'primary' : 'error',
     icon: isProError ? 'i-lucide-lock' : 'i-lucide-alert-circle',
-    actions: isProError ? [{
-      label: 'Fazer Upgrade',
-      click: () => window.open(useRuntimeConfig().public.lemonSqueezyCheckoutUrl, '_blank')
-    }] : undefined
+    actions: isProError
+      ? [{
+          label: 'Fazer Upgrade',
+          onClick: () => { window.open(useRuntimeConfig().public.lemonSqueezyCheckoutUrl, '_blank') }
+        }]
+      : undefined
   })
   router.push('/dashboard')
 }
@@ -107,12 +109,12 @@ const comparisonMetrics = computed(() => {
 // Get value class for comparison highlighting
 function getValueClass(simulation: Simulation, field: 'monthlyPayment' | 'totalInterest' | 'totalPayment') {
   if (!simulations.value || simulations.value.length < 2) return ''
-  
+
   const values = simulations.value.map(s => s.summary[field])
   const min = Math.min(...values)
   const max = Math.max(...values)
   const value = simulation.summary[field]
-  
+
   if (value === min) return 'text-green-600 dark:text-green-400 font-bold'
   if (value === max && simulations.value.length > 2) return 'text-red-600 dark:text-red-400'
   return ''

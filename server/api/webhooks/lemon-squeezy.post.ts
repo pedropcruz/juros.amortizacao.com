@@ -13,15 +13,15 @@ export default defineEventHandler(async (event) => {
   // 1. Verify Signature
   const rawBody = await readRawBody(event)
   if (!rawBody) {
-      throw createError({ statusCode: 400, message: 'No body' })
+    throw createError({ statusCode: 400, message: 'No body' })
   }
-  
+
   const hmac = crypto.createHmac('sha256', secret)
   const digest = Buffer.from(hmac.update(rawBody).digest('hex'), 'utf8')
   const signatureHeader = getHeader(event, 'x-signature')
-  
+
   if (!signatureHeader) {
-      throw createError({ statusCode: 401, message: 'No signature' })
+    throw createError({ statusCode: 401, message: 'No signature' })
   }
 
   const signature = Buffer.from(signatureHeader, 'utf8')
@@ -40,40 +40,40 @@ export default defineEventHandler(async (event) => {
   // We care about 'order_created' for LTD (Lifetime Deal)
   // We also might care about 'subscription_created' if we switch to subs later
   if (eventName === 'order_created') {
-      const attributes = data.attributes
-      const customerEmail = attributes.user_email
-      const status = attributes.status // 'paid'
-      
-      if (status === 'paid') {
-          const db = useDatabase()
-          
-          // Check if custom_data.user_id exists (sent from frontend)
-          let userId = meta.custom_data?.user_id
-          
-          if (!userId) {
-              // Fallback to email matching
-              const user = await db.query.user.findFirst({
-                  where: eq(schema.user.email, customerEmail)
-              })
-              userId = user?.id
-          }
+    const attributes = data.attributes
+    const customerEmail = attributes.user_email
+    const status = attributes.status // 'paid'
 
-          if (userId) {
-              await db.update(schema.user)
-                .set({
-                    isPro: true,
-                    subscriptionId: data.id, // Order ID
-                    customerId: attributes.customer_id.toString(),
-                    subscriptionStatus: 'lifetime',
-                    updatedAt: new Date()
-                })
-                .where(eq(schema.user.id, userId))
-                
-               console.log(`Upgraded user ${userId} to Pro`)
-          } else {
-              console.warn(`User not found for email: ${customerEmail}`)
-          }
+    if (status === 'paid') {
+      const db = useDatabase()
+
+      // Check if custom_data.user_id exists (sent from frontend)
+      let userId = meta.custom_data?.user_id
+
+      if (!userId) {
+        // Fallback to email matching
+        const user = await db.query.user.findFirst({
+          where: eq(schema.user.email, customerEmail)
+        })
+        userId = user?.id
       }
+
+      if (userId) {
+        await db.update(schema.user)
+          .set({
+            isPro: true,
+            subscriptionId: data.id, // Order ID
+            customerId: attributes.customer_id.toString(),
+            subscriptionStatus: 'lifetime',
+            updatedAt: new Date()
+          })
+          .where(eq(schema.user.id, userId))
+
+        console.log(`Upgraded user ${userId} to Pro`)
+      } else {
+        console.warn(`User not found for email: ${customerEmail}`)
+      }
+    }
   }
 
   return { received: true }

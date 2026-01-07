@@ -80,33 +80,47 @@ export const useFinancial = () => {
     termMonths: number
   ): number {
     if (annualRate === 0) return principal / termMonths
-    
+
     const monthlyRate = annualRate / 12
-    const payment = principal * (monthlyRate * Math.pow(1 + monthlyRate, termMonths)) 
+    const payment = principal * (monthlyRate * Math.pow(1 + monthlyRate, termMonths))
       / (Math.pow(1 + monthlyRate, termMonths) - 1)
-      
+
     return payment
   }
 
   /**
    * Calculate revision impact based on current market rates
    */
+  interface SimulationForRevision {
+    rateType?: RateType | string
+    euriborPeriod?: EuriborPeriod | string
+    createdAt: string
+    termMonths: number
+    spread?: number | null
+    stampDutyRate?: number
+    amortizationTable?: Array<{
+      remainingBalance: number
+      insurance: number
+      totalPayment: number
+    }>
+  }
+
   function calculateRevisionImpact(
-    simulation: any, // Typed as any to avoid circular deps, but expects Simulation structure
+    simulation: SimulationForRevision | null,
     marketRates: { rate3m: number, rate6m: number, rate12m: number } | null
   ) {
     // 1. Basic checks
     if (!simulation || !marketRates) return null
     if (simulation.rateType === 'fixed') return { impact: 0, label: 'Taxa Fixa', type: 'shield' }
-    
+
     // 2. Identify applicable rate
     const period = simulation.euriborPeriod as EuriborPeriod
     let currentEuribor: number | undefined
-    
+
     if (period === '3m') currentEuribor = marketRates.rate3m
     else if (period === '6m') currentEuribor = marketRates.rate6m
     else if (period === '12m') currentEuribor = marketRates.rate12m
-    
+
     if (currentEuribor === undefined) return null
 
     // 3. Determine current state (months elapsed)
@@ -114,18 +128,18 @@ export const useFinancial = () => {
     const today = new Date()
     // Difference in months
     const monthsElapsed = (today.getFullYear() - startDate.getFullYear()) * 12 + (today.getMonth() - startDate.getMonth())
-    
+
     // Clamp months (if simulation is new, 0 months. if older than term, term months)
     const currentMonthIndex = Math.max(0, Math.min(monthsElapsed, simulation.termMonths - 1))
-    
+
     // Get remaining balance from amortization table
     // If table doesn't have enough rows (shouldn't happen), fallback to 0
     const currentRow = simulation.amortizationTable?.[currentMonthIndex]
     if (!currentRow) return null
-    
+
     const remainingPrincipal = currentRow.remainingBalance
     const remainingMonths = simulation.termMonths - currentMonthIndex
-    
+
     if (remainingPrincipal <= 0 || remainingMonths <= 0) return { impact: 0, label: 'Pago', type: 'neutral' }
 
     // 4. Calculate New Payment
@@ -133,31 +147,31 @@ export const useFinancial = () => {
     // Convert to decimal for calculation: (3.5 + 1.0) / 100 = 0.045
     const spread = simulation.spread || 0
     const newTan = (currentEuribor + spread) / 100
-    
+
     const newPaymentRaw = calculateMonthlyPayment(remainingPrincipal, newTan, remainingMonths)
-    
+
     // Add stamp duty (if applicable, usually 4% on interest) - approximating for simple payment comparison
-    // To match the simulation exactness, we should add IS. 
+    // To match the simulation exactness, we should add IS.
     // Simulation `summary.monthlyPayment` likely includes IS.
     // Let's assume standard IS on Interest.
     // New Interest part = remainingPrincipal * newTan / 12
     // IS = Interest * 0.04
     const newMonthlyInterest = remainingPrincipal * (newTan / 12)
     const newStampDuty = newMonthlyInterest * (simulation.stampDutyRate || 0.04)
-    // Insurance? Assuming insurance rate stays same relative to capital, but might change. 
+    // Insurance? Assuming insurance rate stays same relative to capital, but might change.
     // Let's keep insurance from current row or approximate?
     // Actually, `summary.monthlyPayment` is the total.
     // The currentRow has `insurance` value. Let's use that as baseline or recompute if rate provided.
     const currentInsurance = currentRow.insurance
-    
+
     const newTotalPayment = newPaymentRaw + newStampDuty + currentInsurance
-    
+
     // 5. Compare with CURRENT payment (from the row, which reflects the scheduled payment for this month)
     // Using `currentRow.totalPayment` which is what user expects to pay this month according to old plan.
     const currentScheduledPayment = currentRow.totalPayment
-    
+
     const difference = newTotalPayment - currentScheduledPayment
-    
+
     return {
       impact: difference, // +45 or -12
       newPayment: newTotalPayment,

@@ -5,7 +5,7 @@ import { fetchLatestEuriborRates, saveEuriborRates } from '../../utils/euribor'
  * GET /api/cron/update-rates
  * Should be protected with a secret key in production
  */
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async () => {
   try {
     // 1. Fetch rates
     const rates = await fetchLatestEuriborRates()

@@ -237,7 +237,10 @@ const features = [
     </div>
 
     <!-- Pricing Section -->
-    <div class="py-24 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800" id="pricing">
+    <div
+      id="pricing"
+      class="py-24 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800"
+    >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
           <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
@@ -251,21 +254,36 @@ const features = [
         <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           <!-- Free Plan -->
           <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col hover:border-primary-200 transition-colors">
-            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Gratuito</h3>
-            <p class="text-gray-500 dark:text-gray-400 mb-6">Para validação rápida.</p>
-            <div class="text-4xl font-bold text-gray-900 dark:text-white mb-8">0€</div>
-            
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Gratuito
+            </h3>
+            <p class="text-gray-500 dark:text-gray-400 mb-6">
+              Para validação rápida.
+            </p>
+            <div class="text-4xl font-bold text-gray-900 dark:text-white mb-8">
+              0€
+            </div>
+
             <ul class="space-y-4 flex-1 mb-8">
               <li class="flex items-start gap-3">
-                <UIcon name="i-lucide-check" class="w-5 h-5 text-green-500 shrink-0" />
+                <UIcon
+                  name="i-lucide-check"
+                  class="w-5 h-5 text-green-500 shrink-0"
+                />
                 <span class="text-gray-600 dark:text-gray-300">Simulador Avançado</span>
               </li>
               <li class="flex items-start gap-3">
-                <UIcon name="i-lucide-check" class="w-5 h-5 text-green-500 shrink-0" />
+                <UIcon
+                  name="i-lucide-check"
+                  class="w-5 h-5 text-green-500 shrink-0"
+                />
                 <span class="text-gray-600 dark:text-gray-300">Guardar até 3 simulações</span>
               </li>
               <li class="flex items-start gap-3">
-                <UIcon name="i-lucide-check" class="w-5 h-5 text-green-500 shrink-0" />
+                <UIcon
+                  name="i-lucide-check"
+                  class="w-5 h-5 text-green-500 shrink-0"
+                />
                 <span class="text-gray-600 dark:text-gray-300">Exportar PDF Simples</span>
               </li>
             </ul>
@@ -286,29 +304,45 @@ const features = [
             <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary-600 text-white px-4 py-1 rounded-full text-sm font-bold shadow-md">
               Oferta de Lançamento
             </div>
-            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Pro Vitalício</h3>
-            <p class="text-gray-500 dark:text-gray-400 mb-6">Para poupança máxima.</p>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Pro Vitalício
+            </h3>
+            <p class="text-gray-500 dark:text-gray-400 mb-6">
+              Para poupança máxima.
+            </p>
             <div class="flex items-baseline gap-2 mb-8">
-                <span class="text-4xl font-bold text-gray-900 dark:text-white">19€</span>
-                <span class="text-gray-400 line-through text-lg">49€</span>
-                <span class="text-gray-500 text-sm">pagamento único</span>
+              <span class="text-4xl font-bold text-gray-900 dark:text-white">19€</span>
+              <span class="text-gray-400 line-through text-lg">49€</span>
+              <span class="text-gray-500 text-sm">pagamento único</span>
             </div>
-            
+
             <ul class="space-y-4 flex-1 mb-8">
               <li class="flex items-start gap-3">
-                <UIcon name="i-lucide-check" class="w-5 h-5 text-primary-500 shrink-0" />
+                <UIcon
+                  name="i-lucide-check"
+                  class="w-5 h-5 text-primary-500 shrink-0"
+                />
                 <span class="text-gray-900 dark:text-white font-medium">Comparador de Cenários</span>
               </li>
               <li class="flex items-start gap-3">
-                <UIcon name="i-lucide-check" class="w-5 h-5 text-primary-500 shrink-0" />
+                <UIcon
+                  name="i-lucide-check"
+                  class="w-5 h-5 text-primary-500 shrink-0"
+                />
                 <span class="text-gray-900 dark:text-white font-medium">Simulações Ilimitadas</span>
               </li>
               <li class="flex items-start gap-3">
-                <UIcon name="i-lucide-check" class="w-5 h-5 text-primary-500 shrink-0" />
+                <UIcon
+                  name="i-lucide-check"
+                  class="w-5 h-5 text-primary-500 shrink-0"
+                />
                 <span class="text-gray-900 dark:text-white font-medium">PDF White-label (Para Consultores)</span>
               </li>
               <li class="flex items-start gap-3">
-                <UIcon name="i-lucide-check" class="w-5 h-5 text-primary-500 shrink-0" />
+                <UIcon
+                  name="i-lucide-check"
+                  class="w-5 h-5 text-primary-500 shrink-0"
+                />
                 <span class="text-gray-900 dark:text-white font-medium">Acesso a atualizações futuras</span>
               </li>
             </ul>
