@@ -18,6 +18,13 @@ const emit = defineEmits<{
 
 const { $posthog } = useNuxtApp()
 
+// Helper to safely capture PostHog events
+function captureEvent(event: string, properties?: Record<string, unknown>) {
+  if (typeof $posthog === 'function') {
+    $posthog()?.capture(event, properties)
+  }
+}
+
 // Form schema
 const schema = z.object({
   repaymentAmount: z.number().positive('O valor deve ser positivo'),
@@ -97,7 +104,7 @@ function onSubmit(_event: FormSubmitEvent<Schema>) {
 
   result.value = finalResult
 
-  $posthog?.()?.capture('early_repayment_calculated', {
+  captureEvent('early_repayment_calculated', {
     repayment_amount: state.repaymentAmount,
     strategy: state.strategy,
     fee_exemption: state.feeExemption,

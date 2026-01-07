@@ -159,6 +159,13 @@ const resultsSection = ref<HTMLElement | null>(null)
 const simulatorSection = ref<HTMLElement | null>(null)
 const { $posthog } = useNuxtApp()
 
+// Helper to safely capture PostHog events
+function captureEvent(event: string, properties?: Record<string, unknown>) {
+  if (typeof $posthog === 'function') {
+    $posthog()?.capture(event, properties)
+  }
+}
+
 // Table columns
 const columns = [
   { key: 'paymentNumber', label: '#' },
@@ -173,7 +180,7 @@ const columns = [
 
 function openEarlyRepayment() {
   showEarlyRepayment.value = true
-  $posthog?.()?.capture('early_repayment_opened')
+  captureEvent('early_repayment_opened')
 }
 
 // Save simulation handler
@@ -215,7 +222,7 @@ async function saveSimulation() {
     showSaveModal.value = false
     simulationName.value = ''
 
-    $posthog?.()?.capture('simulation_saved', {
+    captureEvent('simulation_saved', {
       principal: state.principal,
       term_years: state.termYears
     })
@@ -279,7 +286,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     result.value = response
     tableRows.value = response.table
 
-    $posthog?.()?.capture('calculation_performed', {
+    captureEvent('calculation_performed', {
       principal: event.data.principal,
       term_years: event.data.termYears,
       tan: tan.value,
