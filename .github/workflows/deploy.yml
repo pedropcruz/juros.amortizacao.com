@@ -15,6 +15,9 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
+          port: 22
+          timeout: 30s
+          command_timeout: 15m
           script: |
             # Parar se houver erros
             set -e
@@ -22,10 +25,12 @@ jobs:
             # Navegar para a pasta do projeto
             cd /app
             
-            # Atualizar código
-            git pull origin main
+            # Garantir que temos as últimas alterações do git (Forçar reset para evitar conflitos)
+            git fetch --all
+            git reset --hard origin/main
             
             # Reconstruir e reiniciar contentores em background
+            # O build pode demorar, por isso aumentámos o timeout da action
             docker compose up -d --build
             
             # Limpar imagens antigas para poupar espaço

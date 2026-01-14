@@ -10,6 +10,11 @@ jobs:
   ci:
     runs-on: ubuntu-latest
 
+    env:
+      NUXT_PUBLIC_SITE_URL: http://localhost:3000
+      NUXT_PUBLIC_POSTHOG_PUBLIC_KEY: 'mock_key'
+      NUXT_PUBLIC_POSTHOG_HOST: 'https://eu.i.posthog.com'
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
