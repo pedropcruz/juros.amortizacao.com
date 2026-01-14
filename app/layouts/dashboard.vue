@@ -1,6 +1,19 @@
 <script setup lang="ts">
-const { user, signOut } = useAuth()
+const { user, signOut, isAuthenticated } = useAuth()
 const router = useRouter()
+const route = useRoute()
+
+// Redirect to login if not authenticated (client-side check)
+onMounted(() => {
+  watch(isAuthenticated, (authenticated) => {
+    if (authenticated === false) {
+      router.push({
+        path: '/login',
+        query: { redirect: route.fullPath }
+      })
+    }
+  }, { immediate: true })
+})
 
 async function handleSignOut() {
   await signOut()
@@ -46,15 +59,33 @@ async function handleSignOut() {
               >
                 Simulador
               </UButton>
+              <UButton
+                to="/taxa-esforco"
+                variant="ghost"
+                color="neutral"
+                size="sm"
+              >
+                Taxa de Esforço
+              </UButton>
             </nav>
           </div>
 
           <div class="flex items-center gap-4">
             <UColorModeButton />
             <div class="flex items-center gap-3">
-              <span class="text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
-                {{ user?.email }}
+              <span
+                v-if="user?.email"
+                class="text-sm text-gray-600 dark:text-gray-400 hidden sm:block"
+              >
+                {{ user.email }}
               </span>
+              <UButton
+                to="/settings"
+                color="neutral"
+                variant="ghost"
+                icon="i-lucide-settings"
+                title="Configurações"
+              />
               <UButton
                 color="neutral"
                 variant="ghost"
@@ -73,5 +104,8 @@ async function handleSignOut() {
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <slot />
     </main>
+
+    <!-- Feedback Widget -->
+    <FeedbackWidget />
   </div>
 </template>

@@ -226,7 +226,7 @@ function formatTermYears(months: number): string {
               </UButton>
 
               <template #content>
-                <div class="p-2 space-y-1 min-w-[200px]">
+                <div class="p-2 space-y-1 min-w-50">
                   <UButton
                     variant="ghost"
                     color="neutral"
@@ -573,7 +573,7 @@ function formatTermYears(months: number): string {
           </div>
         </template>
 
-        <div class="overflow-x-auto max-h-[500px] overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-800">
+        <div class="overflow-x-auto max-h-125 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-800">
           <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
             <thead class="bg-gray-50/90 dark:bg-gray-800/90 sticky top-0 z-10 backdrop-blur-sm">
               <tr>

@@ -31,6 +31,14 @@ export default defineNuxtConfig({
     }
   },
 
+  // Disable SSR for authenticated routes to avoid hydration issues
+  routeRules: {
+    '/dashboard': { ssr: false },
+    '/settings': { ssr: false },
+    '/compare': { ssr: false },
+    '/simulation/**': { ssr: false }
+  },
+
   compatibilityDate: '2025-01-15',
 
   eslint: {

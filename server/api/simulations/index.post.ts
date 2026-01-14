@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { eq, count } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { useDatabase, schema } from '../../utils/db'
 import { auth } from '../../utils/auth'
 
@@ -70,30 +70,28 @@ export default defineEventHandler(async (event) => {
 
   const db = useDatabase()
 
-  // Check Free Plan Limits
-  const user = await db.query.user.findFirst({
+  // Check Free Plan Limits (lifetime limit)
+  const userRecord = await db.query.user.findFirst({
     where: eq(schema.user.id, session.user.id),
     columns: {
-      isPro: true
+      isPro: true,
+      totalSimulationsCreated: true
     }
   })
 
-  if (!user?.isPro) {
-    // Count existing simulations
-    const [result] = await db
-      .select({ count: count() })
-      .from(schema.simulations)
-      .where(eq(schema.simulations.userId, session.user.id))
+  const FREE_PLAN_LIMIT = 3
 
-    const simulationCount = result?.count || 0
+  if (!userRecord?.isPro) {
+    const totalCreated = userRecord?.totalSimulationsCreated || 0
 
-    if (simulationCount >= 3) {
+    if (totalCreated >= FREE_PLAN_LIMIT) {
       throw createError({
         statusCode: 403,
-        statusMessage: 'Limite de simulações atingido (Máximo 3). Atualize para Pro para guardar ilimitado.',
+        statusMessage: 'Limite de simulações atingido. Ja criou 3 simulações. Atualize para Pro para criar ilimitadas.',
         data: {
-          code: 'LIMIT_REACHED',
-          limit: 3
+          code: 'LIFETIME_LIMIT_REACHED',
+          limit: FREE_PLAN_LIMIT,
+          created: totalCreated
         }
       })
     }
@@ -144,6 +142,11 @@ export default defineEventHandler(async (event) => {
         statusMessage: 'Erro ao criar simulação'
       })
     }
+
+    // Increment lifetime simulation counter for the user
+    await db.update(schema.user)
+      .set({ totalSimulationsCreated: sql`${schema.user.totalSimulationsCreated} + 1` })
+      .where(eq(schema.user.id, session.user.id))
 
     return {
       id: simulation.publicId,

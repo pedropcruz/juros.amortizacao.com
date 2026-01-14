@@ -35,12 +35,25 @@ interface EuriborRates {
 }
 
 // Fetch simulations
-const { data: simulations, pending: isLoading, refresh } = await useFetch<Simulation[]>('/api/simulations', {
+const { data: simulations, pending: isLoading, refresh } = useFetch<Simulation[]>('/api/simulations', {
   default: () => []
 })
 
+// Fetch simulation limits
+interface SimulationLimits {
+  isPro: boolean
+  totalCreated: number
+  limit: number | null
+  remaining: number | null
+  canCreate: boolean
+}
+
+const { data: limits } = useFetch<SimulationLimits>('/api/simulations/limits', {
+  default: () => ({ isPro: false, totalCreated: 0, limit: 3, remaining: 3, canCreate: true })
+})
+
 // Fetch Euribor rates
-const { data: euriborRates, pending: euriborLoading, refresh: refreshEuribor } = await useFetch<EuriborRates>('/api/euribor/latest', {
+const { data: euriborRates, pending: euriborLoading, refresh: refreshEuribor } = useFetch<EuriborRates>('/api/euribor/latest', {
   lazy: true
 })
 
@@ -194,24 +207,45 @@ function formatTermYears(months: number): string {
 
       <!-- Quick Actions -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <UCard class="hover:shadow-lg transition-shadow cursor-pointer group">
+        <UCard
+          class="transition-shadow"
+          :class="limits?.canCreate ? 'hover:shadow-lg cursor-pointer group' : 'opacity-75'"
+        >
           <NuxtLink
-            to="/simulator"
+            :to="limits?.canCreate ? '/simulator' : undefined"
             class="block"
+            :class="{ 'pointer-events-none': !limits?.canCreate }"
           >
             <div class="flex items-center gap-4">
-              <div class="p-3 bg-primary-100 dark:bg-primary-900/30 rounded-xl group-hover:scale-110 transition-transform">
+              <div
+                class="p-3 rounded-xl transition-transform"
+                :class="limits?.canCreate
+                  ? 'bg-primary-100 dark:bg-primary-900/30 group-hover:scale-110'
+                  : 'bg-gray-100 dark:bg-gray-800'"
+              >
                 <UIcon
-                  name="i-lucide-calculator"
-                  class="w-6 h-6 text-primary-600 dark:text-primary-400"
+                  :name="limits?.canCreate ? 'i-lucide-calculator' : 'i-lucide-lock'"
+                  class="w-6 h-6"
+                  :class="limits?.canCreate
+                    ? 'text-primary-600 dark:text-primary-400'
+                    : 'text-gray-400'"
                 />
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 dark:text-white">
                   Nova Simulação
                 </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
+                <p
+                  v-if="limits?.canCreate"
+                  class="text-sm text-gray-500 dark:text-gray-400"
+                >
                   Calcule a sua prestação
+                </p>
+                <p
+                  v-else
+                  class="text-sm text-orange-600 dark:text-orange-400"
+                >
+                  Limite atingido ({{ limits?.totalCreated }}/{{ limits?.limit }})
                 </p>
               </div>
             </div>
@@ -226,13 +260,39 @@ function formatTermYears(months: number): string {
                 class="w-6 h-6 text-green-600 dark:text-green-400"
               />
             </div>
-            <div>
+            <div class="flex-1">
               <h3 class="font-semibold text-gray-900 dark:text-white">
                 Simulações Guardadas
               </h3>
               <p class="text-sm text-gray-500 dark:text-gray-400">
                 {{ simulations?.length || 0 }} {{ simulations?.length === 1 ? 'simulação' : 'simulações' }}
               </p>
+              <!-- Show limit info for free users -->
+              <div
+                v-if="!limits?.isPro && limits?.limit"
+                class="mt-2 flex items-center gap-2"
+              >
+                <div class="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div
+                    class="h-full rounded-full transition-all"
+                    :class="limits.remaining === 0 ? 'bg-red-500' : limits.remaining === 1 ? 'bg-orange-500' : 'bg-primary-500'"
+                    :style="{ width: `${((limits.totalCreated) / limits.limit) * 100}%` }"
+                  />
+                </div>
+                <span class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                  {{ limits.totalCreated }}/{{ limits.limit }} criadas
+                </span>
+              </div>
+              <span
+                v-if="limits?.isPro"
+                class="inline-flex items-center gap-1 mt-1 text-xs text-primary-600 dark:text-primary-400 font-medium"
+              >
+                <UIcon
+                  name="i-lucide-infinity"
+                  class="w-3 h-3"
+                />
+                Ilimitado
+              </span>
             </div>
           </div>
         </UCard>
@@ -317,9 +377,10 @@ function formatTermYears(months: number): string {
                 {{ isCompareMode ? 'Cancelar' : 'Comparar' }}
               </UButton>
               <UButton
-                to="/simulator"
+                :to="limits?.canCreate ? '/simulator' : undefined"
                 icon="i-lucide-plus"
                 size="sm"
+                :disabled="!limits?.canCreate"
               >
                 Nova
               </UButton>
@@ -357,8 +418,9 @@ function formatTermYears(months: number): string {
             Comece por criar uma simulação para ver os detalhes do seu crédito habitação.
           </p>
           <UButton
-            to="/simulator"
+            :to="limits?.canCreate ? '/simulator' : undefined"
             icon="i-lucide-calculator"
+            :disabled="!limits?.canCreate"
           >
             Criar Primeira Simulação
           </UButton>

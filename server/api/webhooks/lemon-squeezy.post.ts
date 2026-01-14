@@ -36,13 +36,10 @@ export default defineEventHandler(async (event) => {
 
   console.log(`Received Lemon Squeezy event: ${eventName}`)
 
-  // 2. Handle Events
-  // We care about 'order_created' for LTD (Lifetime Deal)
-  // We also might care about 'subscription_created' if we switch to subs later
   if (eventName === 'order_created') {
     const attributes = data.attributes
     const customerEmail = attributes.user_email
-    const status = attributes.status // 'paid'
+    const status = attributes.status
 
     if (status === 'paid') {
       const db = useDatabase()
@@ -65,6 +62,9 @@ export default defineEventHandler(async (event) => {
             subscriptionId: data.id, // Order ID
             customerId: attributes.customer_id.toString(),
             subscriptionStatus: 'lifetime',
+            proSince: new Date(),
+            orderAmount: attributes.total, // Amount in cents
+            receiptUrl: attributes.urls?.receipt || null,
             updatedAt: new Date()
           })
           .where(eq(schema.user.id, userId))

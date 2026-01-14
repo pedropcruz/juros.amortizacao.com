@@ -10,6 +10,12 @@ const features = [
     description: 'Cálculos baseados no Sistema Francês usado pelos bancos portugueses, incluindo Imposto do Selo e seguros.'
   },
   {
+    icon: 'i-lucide-percent',
+    title: 'Taxa de Esforço',
+    description: 'Descubra quanto pode pedir de crédito com base no seu rendimento. A regra dos 30-35% usada pelos bancos.',
+    link: '/taxa-esforco'
+  },
+  {
     icon: 'i-lucide-piggy-bank',
     title: 'Amortização Antecipada',
     description: 'Descubra quanto poupa ao amortizar. Escolha entre reduzir a prestação ou o prazo do empréstimo.'
@@ -25,11 +31,6 @@ const features = [
     description: 'Os seus dados ficam consigo. Sem publicidade, sem venda de informação a terceiros.'
   },
   {
-    icon: 'i-lucide-bell',
-    title: 'Alertas Euribor',
-    description: 'Receba notificações quando a Euribor mudar e veja o impacto na sua prestação. (Em breve)'
-  },
-  {
     icon: 'i-lucide-folder',
     title: 'Guardar Simulações',
     description: 'Guarde múltiplas simulações para comparar cenários e acompanhar a evolução do seu crédito.'
@@ -42,8 +43,8 @@ const features = [
     <!-- Hero Section -->
     <div class="relative overflow-hidden">
       <!-- Background Pattern -->
-      <div class="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-[size:16px_16px] opacity-25 dark:opacity-10" />
-      <div class="absolute inset-0 bg-gradient-to-b from-primary-50/50 via-transparent to-white dark:from-primary-950/20 dark:to-gray-950" />
+      <div class="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-size-[16px_16px] opacity-25 dark:opacity-10" />
+      <div class="absolute inset-0 bg-linear-to-b from-primary-50/50 via-transparent to-white dark:from-primary-950/20 dark:to-gray-950" />
 
       <div class="relative max-w-7xl mx-auto px-4 pt-20 pb-24 sm:pt-32 sm:pb-32 sm:px-6 lg:px-8">
         <div class="text-center max-w-4xl mx-auto">
@@ -151,10 +152,13 @@ const features = [
         </div>
 
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div
+          <component
+            :is="feature.link ? 'NuxtLink' : 'div'"
             v-for="feature in features"
             :key="feature.title"
+            :to="feature.link"
             class="group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700"
+            :class="{ 'cursor-pointer': feature.link }"
           >
             <div class="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <UIcon
@@ -162,13 +166,20 @@ const features = [
                 class="w-6 h-6 text-primary-600 dark:text-primary-400"
               />
             </div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              {{ feature.title }}
-            </h3>
+            <div class="flex items-center gap-2 mb-2">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                {{ feature.title }}
+              </h3>
+              <UIcon
+                v-if="feature.link"
+                name="i-lucide-arrow-right"
+                class="w-4 h-4 text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity"
+              />
+            </div>
             <p class="text-gray-600 dark:text-gray-400">
               {{ feature.description }}
             </p>
-          </div>
+          </component>
         </div>
       </div>
     </div>

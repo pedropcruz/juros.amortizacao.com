@@ -226,13 +226,24 @@ async function saveSimulation() {
       principal: state.principal,
       term_years: state.termYears
     })
-  } catch (e) {
-    toast.add({
-      title: 'Erro ao guardar',
-      description: 'Não foi possível guardar a simulação. Tente novamente.',
-      color: 'error',
-      icon: 'i-lucide-alert-circle'
-    })
+  } catch (e: unknown) {
+    const error = e as { statusCode?: number; data?: { code?: string; limit?: number; created?: number } }
+
+    if (error.statusCode === 403 && error.data?.code === 'LIFETIME_LIMIT_REACHED') {
+      toast.add({
+        title: 'Limite de simulações atingido',
+        description: `Já criou ${error.data.created}/${error.data.limit} simulações. Atualize para Pro para simulações ilimitadas.`,
+        color: 'warning',
+        icon: 'i-lucide-lock'
+      })
+    } else {
+      toast.add({
+        title: 'Erro ao guardar',
+        description: 'Não foi possível guardar a simulação. Tente novamente.',
+        color: 'error',
+        icon: 'i-lucide-alert-circle'
+      })
+    }
     console.error(e)
   } finally {
     isSaving.value = false
