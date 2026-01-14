@@ -1,0 +1,81 @@
+name: Production Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  quality:
+    name: Quality Check & Build
+    runs-on: ubuntu-latest
+    env:
+      # Variáveis "dummy" apenas para o Nuxt conseguir fazer o build estático sem erros.
+      # As variáveis REAIS de produção estão no ficheiro .env dentro do servidor Hetzner.
+      NUXT_PUBLIC_SITE_URL: http://localhost:3000
+      NUXT_PUBLIC_POSTHOG_PUBLIC_KEY: 'mock_key_for_build'
+      NUXT_PUBLIC_POSTHOG_HOST: 'https://eu.i.posthog.com'
+      NUXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL: ''
+      BETTER_AUTH_SECRET: 'mock_secret'
+      GOOGLE_CLIENT_ID: 'mock_client_id'
+      GOOGLE_CLIENT_SECRET: 'mock_client_secret'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Run Tests
+        run: bun run test:run
+
+      - name: Build Project
+        run: bun run build
+
+  deploy:
+    name: Deploy to Hetzner
+    needs: quality # ESTA LINHA GARANTE A SEQUÊNCIA: Só faz deploy se o quality passar
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          timeout: 30s
+          command_timeout: 15m
+          script: |
+            # Parar se houver erros
+            set -e
+            
+            echo "🚀 Starting deployment..."
+            
+            # Navegar para a pasta
+            cd /app
+            
+            # Atualizar código (Forçar reset para garantir sincronia)
+            git fetch --all
+            git reset --hard origin/main
+            
+            # Reconstruir contentores
+            echo "📦 Building and restarting containers..."
+            docker compose up -d --build
+            
+            # Limpar lixo
+            docker image prune -f
+            
+            echo "✅ Deployment successful!"

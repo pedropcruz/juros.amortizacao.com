@@ -1,13 +1,12 @@
-name: ci
+name: Pull Request CI
 
 on:
-  push:
-    branches: [ main, master ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
 
 jobs:
   ci:
+    name: CI Check
     runs-on: ubuntu-latest
 
     env:
@@ -16,25 +15,12 @@ jobs:
       NUXT_PUBLIC_POSTHOG_HOST: 'https://eu.i.posthog.com'
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-  
-      - name: Install Bun
-        uses: oven-sh/setup-bun@v1
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Lint
-        run: bun run lint
-
-      - name: Typecheck
-        run: bun run typecheck
-
-      - name: Run tests
-        run: bun run test:run
-  
-      - name: Build
-        run: bun run build
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run typecheck
+      - run: bun run test:run
+      - run: bun run build
