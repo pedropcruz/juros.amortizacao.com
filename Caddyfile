@@ -1,4 +1,10 @@
-{$SITE_DOMAIN:localhost} {
+# Redirecionamento: amortizacao.com -> juros.amortizacao.com
+amortizacao.com, www.amortizacao.com {
+    redir https://juros.amortizacao.com{uri}
+}
+
+# Aplicação Principal: juros.amortizacao.com
+juros.amortizacao.com, {$SITE_DOMAIN:localhost} {
     reverse_proxy app:3000
     encode gzip zstd
 }

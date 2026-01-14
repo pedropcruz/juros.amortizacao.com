@@ -1,0 +1,32 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            # Parar se houver erros
+            set -e
+            
+            # Navegar para a pasta do projeto
+            cd /app
+            
+            # Atualizar código
+            git pull origin main
+            
+            # Reconstruir e reiniciar contentores em background
+            docker compose up -d --build
+            
+            # Limpar imagens antigas para poupar espaço
+            docker image prune -f
