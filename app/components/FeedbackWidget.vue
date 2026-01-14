@@ -2,6 +2,7 @@
 const isOpen = ref(false)
 const isSubmitting = ref(false)
 const isSubmitted = ref(false)
+const analytics = useAnalytics()
 
 const form = reactive({
   type: 'feature' as 'bug' | 'feature' | 'other',
@@ -30,6 +31,11 @@ async function submitFeedback() {
       }
     })
 
+    analytics.capture('feedback_submitted', {
+      type: form.type,
+      has_email: !!form.email
+    })
+
     isSubmitted.value = true
 
     // Reset after 3 seconds
@@ -41,11 +47,19 @@ async function submitFeedback() {
       form.type = 'feature'
     }, 2500)
   } catch (error) {
+    analytics.capture('feedback_error', { error: String(error) })
     console.error('Failed to submit feedback:', error)
   } finally {
     isSubmitting.value = false
   }
 }
+
+// Track widget open
+watch(isOpen, (val) => {
+  if (val) {
+    analytics.capture('feedback_widget_opened')
+  }
+})
 </script>
 
 <template>
