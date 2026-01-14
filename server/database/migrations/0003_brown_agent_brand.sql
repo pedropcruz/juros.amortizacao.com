@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "total_simulations_created" integer DEFAULT 0;

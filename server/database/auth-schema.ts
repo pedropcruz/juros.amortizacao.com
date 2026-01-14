@@ -2,7 +2,8 @@ import {
   pgTable,
   text,
   timestamp,
-  boolean
+  boolean,
+  integer
 } from 'drizzle-orm/pg-core'
 
 /**
@@ -21,6 +22,11 @@ export const user = pgTable('user', {
   subscriptionId: text('subscription_id'),
   customerId: text('customer_id'),
   subscriptionStatus: text('subscription_status'),
+  proSince: timestamp('pro_since'),
+  orderAmount: integer('order_amount'), // in cents
+  receiptUrl: text('receipt_url'),
+  // Simulation limits (lifetime count for free users)
+  totalSimulationsCreated: integer('total_simulations_created').default(0),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow()
 })
