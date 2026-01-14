@@ -76,12 +76,18 @@ const { isAuthenticated } = useAuth()
               © {{ year }} Juros. Todos os direitos reservados.
             </p>
           </div>
-          
+
           <div class="flex items-center gap-6">
-            <NuxtLink to="/terms" class="text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
+            <NuxtLink
+              to="/terms"
+              class="text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
               Termos
             </NuxtLink>
-            <NuxtLink to="/privacy" class="text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
+            <NuxtLink
+              to="/privacy"
+              class="text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
               Privacidade
             </NuxtLink>
             <p class="text-xs text-gray-400 hidden sm:block border-l border-gray-200 dark:border-gray-800 pl-6">

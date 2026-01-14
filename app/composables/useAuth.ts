@@ -61,7 +61,7 @@ export const useAuth = () => {
   }
 
   // Update user profile
-  const updateUser = async (data: { name?: string; image?: string }) => {
+  const updateUser = async (data: { name?: string, image?: string }) => {
     return client.updateUser(data)
   }
 

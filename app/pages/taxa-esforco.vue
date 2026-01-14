@@ -418,7 +418,9 @@ function formatPercent(value: number): string {
                   class="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5"
                 />
                 <div class="text-sm text-blue-700 dark:text-blue-300">
-                  <p class="font-medium mb-1">O que é a taxa de esforço?</p>
+                  <p class="font-medium mb-1">
+                    O que é a taxa de esforço?
+                  </p>
                   <p class="text-blue-600 dark:text-blue-400">
                     É a percentagem do rendimento destinada ao pagamento de créditos.
                     Os bancos portugueses recomendam não ultrapassar 35% para garantir estabilidade financeira.

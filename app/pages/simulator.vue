@@ -227,7 +227,7 @@ async function saveSimulation() {
       term_years: state.termYears
     })
   } catch (e: unknown) {
-    const error = e as { statusCode?: number; data?: { code?: string; limit?: number; created?: number } }
+    const error = e as { statusCode?: number, data?: { code?: string, limit?: number, created?: number } }
 
     if (error.statusCode === 403 && error.data?.code === 'LIFETIME_LIMIT_REACHED') {
       toast.add({

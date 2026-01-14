@@ -11,7 +11,6 @@ useSeoMeta({
 })
 
 const { resetPassword } = useAuth()
-const router = useRouter()
 const route = useRoute()
 
 // Get token from URL
@@ -21,7 +20,7 @@ const error = computed(() => route.query.error as string | undefined)
 const schema = z.object({
   password: z.string().min(8, 'A password deve ter pelo menos 8 caracteres'),
   confirmPassword: z.string().min(8, 'A password deve ter pelo menos 8 caracteres')
-}).refine((data) => data.password === data.confirmPassword, {
+}).refine(data => data.password === data.confirmPassword, {
   message: 'As passwords nao coincidem',
   path: ['confirmPassword']
 })

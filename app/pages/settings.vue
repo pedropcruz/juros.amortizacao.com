@@ -314,8 +314,8 @@ const { data: billing, pending: billingLoading } = useFetch<BillingInfo>('/api/b
 // Computed property to check if user is Pro, prioritizing fresh billing data
 const isPro = computed(() => {
   if (billing.value?.isPro) return true
-  // Fallback to session data if billing is loading or false (though billing is the source of truth)
-  return (user.value as any)?.isPro || false
+  // WIP: user should have the flag as well
+  return false
 })
 
 function formatDate(dateString: string | null): string {
