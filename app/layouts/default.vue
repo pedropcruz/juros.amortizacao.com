@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const year = new Date().getFullYear()
+const { isAuthenticated } = useAuth()
 </script>
 
 <template>
@@ -20,6 +21,35 @@ const year = new Date().getFullYear()
             </div>
             <span class="font-bold text-xl text-gray-900 dark:text-white tracking-tight">Juros</span>
           </NuxtLink>
+
+          <!-- Navigation -->
+          <nav class="hidden md:flex items-center gap-1">
+            <UButton
+              v-if="isAuthenticated"
+              to="/dashboard"
+              variant="ghost"
+              color="neutral"
+              size="sm"
+            >
+              Dashboard
+            </UButton>
+            <UButton
+              to="/simulator"
+              variant="ghost"
+              color="neutral"
+              size="sm"
+            >
+              Simulador
+            </UButton>
+            <UButton
+              to="/taxa-esforco"
+              variant="ghost"
+              color="neutral"
+              size="sm"
+            >
+              Taxa de Esforço
+            </UButton>
+          </nav>
 
           <div class="flex items-center gap-3">
             <UColorModeButton />
@@ -43,16 +73,26 @@ const year = new Date().getFullYear()
               class="w-5 h-5 text-gray-400"
             />
             <p class="text-sm text-gray-500 dark:text-gray-400">
-              © {{ year }} Todos os direitos reservados.
+              © {{ year }} Juros. Todos os direitos reservados.
             </p>
           </div>
+          
           <div class="flex items-center gap-6">
-            <p class="text-xs text-gray-400">
+            <NuxtLink to="/terms" class="text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
+              Termos
+            </NuxtLink>
+            <NuxtLink to="/privacy" class="text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
+              Privacidade
+            </NuxtLink>
+            <p class="text-xs text-gray-400 hidden sm:block border-l border-gray-200 dark:border-gray-800 pl-6">
               Literacia Financeira para todos.
             </p>
           </div>
         </div>
       </div>
     </footer>
+
+    <!-- Feedback Widget -->
+    <FeedbackWidget />
   </div>
 </template>
