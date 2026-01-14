@@ -3,12 +3,24 @@ services:
     build: .
     restart: unless-stopped
     environment:
+      # Core
       - DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@db:5432/juros_amortizacao
       - NUXT_PUBLIC_SITE_URL=${SITE_URL}
+      
+      # Auth
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      
+      # Email
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - EMAIL_FROM=${EMAIL_FROM}
+      
+      # Payments
       - NUXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL=${NUXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL}
+      - LEMON_SQUEEZY_WEBHOOK_SECRET=${LEMON_SQUEEZY_WEBHOOK_SECRET}
+      
+      # Analytics
       - NUXT_PUBLIC_POSTHOG_PUBLIC_KEY=${NUXT_PUBLIC_POSTHOG_PUBLIC_KEY}
       - NUXT_PUBLIC_POSTHOG_HOST=${NUXT_PUBLIC_POSTHOG_HOST}
     ports:
