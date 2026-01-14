@@ -138,8 +138,8 @@ function useDecimalInput(source: Ref<number>) {
     get: () => internal.value,
     set: (val: string) => {
       // Replace dots with commas for Portuguese consistency
-      let formatted = val.replace(/\./g, ',')
-      
+      const formatted = val.replace(/\./g, ',')
+
       // Update display value
       internal.value = formatted
 
@@ -147,7 +147,7 @@ function useDecimalInput(source: Ref<number>) {
       // Remove any non-numeric/non-comma chars just in case
       const normalized = formatted.replace(',', '.')
       const parsed = parseFloat(normalized)
-      
+
       if (!isNaN(parsed)) {
         source.value = parsed
       }
@@ -535,13 +535,19 @@ watch(showEarlyRepayment, async (val) => {
                         <span class="text-gray-500 dark:text-gray-400 text-xs">%</span>
                       </template>
                     </UInput>
-                    <div v-if="euriborRates" class="flex items-center gap-2">
+                    <div
+                      v-if="euriborRates"
+                      class="flex items-center gap-2"
+                    >
                       <UCheckbox
                         v-model="useAutoEuribor"
                         label="Usar taxa atual"
                         size="xs"
                       />
-                      <span v-if="useAutoEuribor" class="text-xs text-gray-500">
+                      <span
+                        v-if="useAutoEuribor"
+                        class="text-xs text-gray-500"
+                      >
                         ({{ new Date(euriborRates.date).toLocaleDateString() }})
                       </span>
                     </div>
