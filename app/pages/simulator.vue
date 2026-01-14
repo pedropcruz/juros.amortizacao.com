@@ -5,6 +5,21 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 const toast = useToast()
 const { isAuthenticated } = useAuth()
 
+// Fetch Euribor rates
+interface EuriborRates {
+  rate3m: number
+  rate6m: number
+  rate12m: number
+  date: string
+}
+
+const { data: euriborRates } = await useFetch<EuriborRates>('/api/euribor/latest', {
+  lazy: true
+})
+
+// Auto Euribor state
+const useAutoEuribor = ref(false)
+
 // Rate type and Euribor period options
 type RateType = 'variable' | 'fixed' | 'mixed'
 type EuriborPeriod = '3m' | '6m' | '12m'
@@ -53,12 +68,16 @@ type Schema = z.output<typeof schema>
 
 // Fixed period options for mixed rates
 const fixedPeriodOptions = [
+  { label: '1 Ano', value: 1 },
   { label: '2 Anos', value: 2 },
   { label: '3 Anos', value: 3 },
+  { label: '4 Anos', value: 4 },
   { label: '5 Anos', value: 5 },
-  { label: '7 Anos', value: 7 },
   { label: '10 Anos', value: 10 },
-  { label: '15 Anos', value: 15 }
+  { label: '15 Anos', value: 15 },
+  { label: '20 Anos', value: 20 },
+  { label: '25 Anos', value: 25 },
+  { label: '30 Anos', value: 30 }
 ]
 
 // Form state (values are in percentage)
@@ -76,6 +95,71 @@ const state = reactive({
   fixedPeriodYears: 5, // Duration of fixed rate period in years
   fixedRate: 3.5 // Fixed rate during initial period (percentage)
 })
+
+// Update Euribor when auto mode is on or period changes
+function updateEuribor() {
+  if (!useAutoEuribor.value || !euriborRates.value) return
+
+  const period = state.euriborPeriod
+  let rate = 0
+
+  if (period === '3m') rate = euriborRates.value.rate3m
+  else if (period === '6m') rate = euriborRates.value.rate6m
+  else if (period === '12m') rate = euriborRates.value.rate12m
+
+  state.euribor = rate
+}
+
+watch([() => state.euriborPeriod, useAutoEuribor, euriborRates], () => {
+  updateEuribor()
+})
+
+// Helper for decimal inputs (handles , and .)
+function useDecimalInput(source: Ref<number>) {
+  const internal = ref(source.value?.toString() ?? '')
+
+  // Sync from state to input (only if significant change)
+  watch(source, (val) => {
+    if (val === undefined || val === null) {
+      internal.value = ''
+      return
+    }
+    const currentParsed = parseFloat(internal.value.replace(',', '.'))
+    if (Math.abs(currentParsed - val) > Number.EPSILON && !isNaN(currentParsed)) {
+      internal.value = val.toString()
+    }
+    // Initial load or external update (like auto euribor)
+    if (internal.value === '') {
+      internal.value = val.toString()
+    }
+  })
+
+  return computed({
+    get: () => internal.value,
+    set: (val: string) => {
+      // Replace dots with commas for Portuguese consistency
+      let formatted = val.replace(/\./g, ',')
+      
+      // Update display value
+      internal.value = formatted
+
+      // Parse for state (using dot for JS math)
+      // Remove any non-numeric/non-comma chars just in case
+      const normalized = formatted.replace(',', '.')
+      const parsed = parseFloat(normalized)
+      
+      if (!isNaN(parsed)) {
+        source.value = parsed
+      }
+    }
+  })
+}
+
+// Create proxies for decimal inputs
+const principalProxy = useDecimalInput(toRef(state, 'principal'))
+const euriborProxy = useDecimalInput(toRef(state, 'euribor'))
+const spreadProxy = useDecimalInput(toRef(state, 'spread'))
+const fixedRateProxy = useDecimalInput(toRef(state, 'fixedRate'))
 
 // Computed: Show Euribor fields only for variable/mixed rates
 const showEuriborFields = computed(() => state.rateType !== 'fixed')
@@ -392,12 +476,11 @@ watch(showEarlyRepayment, async (val) => {
                 <div class="relative">
                   <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">€</span>
                   <UInput
-                    v-model.number="state.principal"
-                    type="number"
-                    :min="1000"
-                    :step="1000"
+                    v-model="principalProxy"
+                    type="text"
+                    inputmode="decimal"
                     placeholder="150000"
-                    class="pl-6"
+                    class="pl-6 w-full"
                     size="lg"
                   />
                 </div>
@@ -440,18 +523,29 @@ watch(showEarlyRepayment, async (val) => {
                   label="Euribor"
                   name="euribor"
                 >
-                  <UInput
-                    v-model.number="state.euribor"
-                    type="number"
-                    :min="-1"
-                    :max="20"
-                    :step="0.1"
-                    placeholder="2.5"
-                  >
-                    <template #trailing>
-                      <span class="text-gray-500 dark:text-gray-400 text-xs">%</span>
-                    </template>
-                  </UInput>
+                  <div class="space-y-2">
+                    <UInput
+                      v-model="euriborProxy"
+                      type="text"
+                      inputmode="decimal"
+                      placeholder="2.5"
+                      :disabled="useAutoEuribor"
+                    >
+                      <template #trailing>
+                        <span class="text-gray-500 dark:text-gray-400 text-xs">%</span>
+                      </template>
+                    </UInput>
+                    <div v-if="euriborRates" class="flex items-center gap-2">
+                      <UCheckbox
+                        v-model="useAutoEuribor"
+                        label="Usar taxa atual"
+                        size="xs"
+                      />
+                      <span v-if="useAutoEuribor" class="text-xs text-gray-500">
+                        ({{ new Date(euriborRates.date).toLocaleDateString() }})
+                      </span>
+                    </div>
+                  </div>
                 </UFormField>
 
                 <UFormField
@@ -459,11 +553,9 @@ watch(showEarlyRepayment, async (val) => {
                   name="spread"
                 >
                   <UInput
-                    v-model.number="state.spread"
-                    type="number"
-                    :min="0"
-                    :max="10"
-                    :step="0.1"
+                    v-model="spreadProxy"
+                    type="text"
+                    inputmode="decimal"
                     placeholder="1.0"
                   >
                     <template #trailing>
@@ -481,11 +573,9 @@ watch(showEarlyRepayment, async (val) => {
                 help="Taxa anual fixa contratada."
               >
                 <UInput
-                  v-model.number="state.euribor"
-                  type="number"
-                  :min="0"
-                  :max="20"
-                  :step="0.1"
+                  v-model="euriborProxy"
+                  type="text"
+                  inputmode="decimal"
                   placeholder="3.5"
                 >
                   <template #trailing>
@@ -526,11 +616,9 @@ watch(showEarlyRepayment, async (val) => {
                     name="mixedFixedRate"
                   >
                     <UInput
-                      v-model.number="state.fixedRate"
-                      type="number"
-                      :min="0"
-                      :max="20"
-                      :step="0.1"
+                      v-model="fixedRateProxy"
+                      type="text"
+                      inputmode="decimal"
                       placeholder="3.5"
                     >
                       <template #trailing>
