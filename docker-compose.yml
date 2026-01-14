@@ -1,6 +1,8 @@
 services:
   app:
-    build: .
+    # Mudança para imagem remota (Zero Downtime Build)
+    image: ghcr.io/pedropcruz/juros.amortizacao.com:latest
+    pull_policy: always
     restart: unless-stopped
     environment:
       # Core
@@ -23,6 +25,15 @@ services:
       # Analytics
       - NUXT_PUBLIC_POSTHOG_PUBLIC_KEY=${NUXT_PUBLIC_POSTHOG_PUBLIC_KEY}
       - NUXT_PUBLIC_POSTHOG_HOST=${NUXT_PUBLIC_POSTHOG_HOST}
+    
+    # Healthcheck para Zero Downtime
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
     ports:
       - "3000:3000"
     depends_on:
@@ -34,10 +45,6 @@ services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
-    # Ports commented out for security. DB is only accessible within the internal network.
-    # To access from local machine, use SSH Tunnel: ssh -L 5432:localhost:5432 root@YOUR_SERVER_IP
-    # ports:
-    #   - "54321:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:

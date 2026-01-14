@@ -5,13 +5,15 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   quality:
-    name: Quality Check & Build
+    name: Quality Check
     runs-on: ubuntu-latest
     env:
-      # Variáveis "dummy" apenas para o Nuxt conseguir fazer o build estático sem erros.
-      # As variáveis REAIS de produção estão no ficheiro .env dentro do servidor Hetzner.
       NUXT_PUBLIC_SITE_URL: http://localhost:3000
       NUXT_PUBLIC_POSTHOG_PUBLIC_KEY: 'mock_key_for_build'
       NUXT_PUBLIC_POSTHOG_HOST: 'https://eu.i.posthog.com'
@@ -41,12 +43,48 @@ jobs:
       - name: Run Tests
         run: bun run test:run
 
-      - name: Build Project
-        run: bun run build
+  build-and-push:
+    name: Build & Push Docker Image
+    needs: quality
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=long
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Usar cache para acelerar builds futuros
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy:
     name: Deploy to Hetzner
-    needs: quality # ESTA LINHA GARANTE A SEQUÊNCIA: Só faz deploy se o quality passar
+    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
       - name: Deploy via SSH
@@ -67,15 +105,30 @@ jobs:
             # Navegar para a pasta
             cd /app
             
-            # Atualizar código (Forçar reset para garantir sincronia)
+            # Atualizar ficheiros de configuração (docker-compose.yml, Caddyfile, etc.)
+            # Nota: O git fetch aqui serve para garantir que o docker-compose.yml no servidor
+            # reflete as mudanças que acabámos de fazer (usar imagem remota).
             git fetch --all
             git reset --hard origin/main
             
-            # Reconstruir contentores
-            echo "📦 Building and restarting containers..."
-            docker compose up -d --build
+            # Login no GHCR dentro do servidor para poder fazer pull da imagem
+            # É necessário adicionar GH_REGISTRY_TOKEN (Personal Access Token - Classic com scope 'read:packages')
+            # aos segredos do repositório.
+            echo "${{ secrets.GH_REGISTRY_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GH_USERNAME }} --password-stdin
             
-            # Limpar lixo
+            # Atualizar imagens
+            echo "📥 Pulling latest images..."
+            docker compose pull app
+            
+            # Rolling Update (Recria o contentor minimizando downtime)
+            # O Docker Compose v2 tenta fazer isto de forma inteligente, mas sem Swarm haverá um pequeno corte.
+            # Para Zero Downtime absoluto num único nó sem Swarm, o Caddy teria de fazer load balancing
+            # entre dois contentores manuais, mas o tempo de boot agora será muito menor
+            # porque o BUILD já foi feito.
+            echo "🔄 Restarting services..."
+            docker compose up -d --remove-orphans
+            
+            # Limpar imagens antigas para poupar disco
             docker image prune -f
             
             echo "✅ Deployment successful!"
