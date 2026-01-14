@@ -7,6 +7,7 @@ definePageMeta({
 const { user } = useAuth()
 const toast = useToast()
 const router = useRouter()
+const analytics = useAnalytics()
 
 // Simulation type
 interface SimulationSummary {
@@ -58,6 +59,7 @@ const { data: euriborRates, pending: euriborLoading, refresh: refreshEuribor } =
 })
 
 async function updateRates() {
+  analytics.capture('dashboard_rates_refresh')
   await $fetch('/api/cron/update-rates')
   await refreshEuribor()
   toast.add({
@@ -79,6 +81,8 @@ function toggleCompareMode() {
   isCompareMode.value = !isCompareMode.value
   if (!isCompareMode.value) {
     selectedForComparison.value.clear()
+  } else {
+    analytics.capture('dashboard_compare_mode_active')
   }
 }
 
@@ -105,6 +109,9 @@ function isSelected(id: string) {
 
 function goToCompare() {
   if (!canCompare.value) return
+  analytics.capture('dashboard_compare_start', {
+    count: selectedForComparison.value.size
+  })
   const ids = Array.from(selectedForComparison.value).join(',')
   router.push(`/compare?ids=${ids}`)
 }
@@ -141,6 +148,8 @@ async function deleteSimulation() {
       method: 'DELETE'
     })
 
+    analytics.capture('dashboard_simulation_deleted')
+
     toast.add({
       title: 'Simulação apagada',
       description: 'A simulação foi apagada com sucesso.',
@@ -163,6 +172,18 @@ async function deleteSimulation() {
     deletingId.value = null
     showDeleteModal.value = false
     simulationToDelete.value = null
+  }
+}
+
+// Track navigation to create simulation
+function handleCreateClick() {
+  if (limits.value?.canCreate) {
+    analytics.capture('dashboard_action_create_click')
+  } else {
+    analytics.capture('dashboard_action_create_blocked', {
+      limit: limits.value?.limit,
+      total: limits.value?.totalCreated
+    })
   }
 }
 
@@ -210,6 +231,7 @@ function formatTermYears(months: number): string {
         <UCard
           class="transition-shadow"
           :class="limits?.canCreate ? 'hover:shadow-lg cursor-pointer group' : 'opacity-75'"
+          @click="handleCreateClick"
         >
           <NuxtLink
             :to="limits?.canCreate ? '/simulator' : undefined"
@@ -381,6 +403,7 @@ function formatTermYears(months: number): string {
                 icon="i-lucide-plus"
                 size="sm"
                 :disabled="!limits?.canCreate"
+                @click="handleCreateClick"
               >
                 Nova
               </UButton>
@@ -421,6 +444,7 @@ function formatTermYears(months: number): string {
             :to="limits?.canCreate ? '/simulator' : undefined"
             icon="i-lucide-calculator"
             :disabled="!limits?.canCreate"
+            @click="handleCreateClick"
           >
             Criar Primeira Simulação
           </UButton>
@@ -535,6 +559,7 @@ function formatTermYears(months: number): string {
                     variant="soft"
                     size="sm"
                     icon="i-lucide-eye"
+                    @click="analytics.capture('dashboard_simulation_open', { id: simulation.id })"
                   >
                     Ver
                   </UButton>

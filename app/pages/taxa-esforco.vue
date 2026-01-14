@@ -4,6 +4,8 @@ useSeoMeta({
   description: 'Descubra quanto pode pedir de crédito habitação com base no seu rendimento. Calculadora gratuita de taxa de esforço para Portugal.'
 })
 
+const analytics = useAnalytics()
+
 const income = ref<number | undefined>(undefined)
 const otherLoans = ref<number | undefined>(0)
 const interestRate = ref<number>(3.5)
@@ -54,6 +56,7 @@ const healthStatus = computed(() => {
 
   if (rate === 0) {
     return {
+      status: 'Excellent',
       color: 'text-green-600 dark:text-green-400',
       bg: 'bg-green-100 dark:bg-green-900/30',
       icon: 'i-lucide-check-circle',
@@ -62,6 +65,7 @@ const healthStatus = computed(() => {
     }
   } else if (rate <= SAFE_RATE) {
     return {
+      status: 'Safe',
       color: 'text-green-600 dark:text-green-400',
       bg: 'bg-green-100 dark:bg-green-900/30',
       icon: 'i-lucide-check-circle',
@@ -70,6 +74,7 @@ const healthStatus = computed(() => {
     }
   } else if (rate <= MAX_RATE) {
     return {
+      status: 'Warning',
       color: 'text-yellow-600 dark:text-yellow-400',
       bg: 'bg-yellow-100 dark:bg-yellow-900/30',
       icon: 'i-lucide-alert-triangle',
@@ -78,6 +83,7 @@ const healthStatus = computed(() => {
     }
   } else {
     return {
+      status: 'Risk',
       color: 'text-red-600 dark:text-red-400',
       bg: 'bg-red-100 dark:bg-red-900/30',
       icon: 'i-lucide-alert-circle',
@@ -85,6 +91,27 @@ const healthStatus = computed(() => {
       description: 'Taxa de esforço elevada - considere reduzir encargos'
     }
   }
+})
+
+// Analytics debounce timer
+let analyticsTimer: NodeJS.Timeout | null = null
+
+// Track calculation when results change
+watch(results, (newResults) => {
+  if (!newResults || !healthStatus.value) return
+
+  // Debounce to avoid capturing every keystroke
+  if (analyticsTimer) clearTimeout(analyticsTimer)
+
+  analyticsTimer = setTimeout(() => {
+    analytics.capture('effort_rate_calculated', {
+      income: newResults.monthlyIncome,
+      other_loans: newResults.currentLoans,
+      rate_value: (newResults.currentEffortRate * 100).toFixed(2),
+      health_status: healthStatus.value?.status,
+      max_loan_safe: newResults.maxLoanSafe
+    })
+  }, 2000)
 })
 
 function formatCurrency(value: number): string {

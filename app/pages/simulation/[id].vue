@@ -9,6 +9,7 @@ const router = useRouter()
 const toast = useToast()
 const { calculateEarlyRepaymentFee, formatRateType, formatEuriborPeriod, calculateRevisionImpact } = useFinancial()
 const { exportSimulationPdf } = usePdfExport()
+const { capture } = useAnalytics()
 
 // PDF export state
 const isExporting = ref(false)
@@ -22,6 +23,15 @@ async function handleExportPdf(includeFullTable = false) {
 
   try {
     const filename = exportSimulationPdf(simulation.value, includeFullTable)
+
+    // Track export event
+    capture('simulation_pdf_export', {
+      simulation_id: simulation.value.id,
+      type: includeFullTable ? 'full_table' : 'summary',
+      term_months: simulation.value.termMonths,
+      amount: simulation.value.loanAmount
+    })
+
     toast.add({
       title: 'PDF exportado',
       description: `Ficheiro "${filename}" guardado com sucesso.`,
@@ -126,6 +136,16 @@ if (error.value) {
     icon: 'i-lucide-alert-circle'
   })
   router.push('/dashboard')
+}
+
+// Track view on mount if simulation exists
+if (simulation.value) {
+  capture('simulation_view', {
+    simulation_id: simulation.value.id,
+    amount: simulation.value.loanAmount,
+    term_months: simulation.value.termMonths,
+    rate_type: simulation.value.rateType
+  })
 }
 
 // Table columns
@@ -256,6 +276,7 @@ function formatTermYears(months: number): string {
               variant="soft"
               color="primary"
               icon="i-lucide-copy"
+              @click="capture('simulation_clone', { source_id: simulation.id })"
             >
               Nova baseada nesta
             </UButton>
@@ -441,6 +462,7 @@ function formatTermYears(months: number): string {
               block
               :color="revisionImpact.type === 'danger' ? 'error' : 'success'"
               icon="i-lucide-calculator"
+              @click="capture('simulation_simulate_revision', { impact: revisionImpact.impact })"
             >
               Simular este cenário
             </UButton>

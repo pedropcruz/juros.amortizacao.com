@@ -18,23 +18,43 @@ function getClient() {
 export const useAuth = () => {
   const client = getClient()
   const session = client.useSession()
+  const analytics = useAnalytics()
 
   const signIn = async (email: string, password: string) => {
-    return client.signIn.email({
+    const res = await client.signIn.email({
       email,
       password
     })
+
+    if (res.data?.user) {
+      analytics.identify(res.data.user.id, { email: res.data.user.email, name: res.data.user.name })
+      analytics.capture('login_success', { method: 'email' })
+    } else if (res.error) {
+      analytics.capture('login_failed', { method: 'email', error: res.error.message })
+    }
+
+    return res
   }
 
   const signUp = async (email: string, password: string, name: string) => {
-    return client.signUp.email({
+    const res = await client.signUp.email({
       email,
       password,
       name
     })
+
+    if (res.data?.user) {
+      analytics.identify(res.data.user.id, { email: res.data.user.email, name: res.data.user.name })
+      analytics.capture('signup_success', { method: 'email' })
+    } else if (res.error) {
+      analytics.capture('signup_failed', { method: 'email', error: res.error.message })
+    }
+
+    return res
   }
 
   const signInWithGoogle = async () => {
+    analytics.capture('login_attempt', { method: 'google' })
     return client.signIn.social({
       provider: 'google',
       callbackURL: '/dashboard'
@@ -42,6 +62,7 @@ export const useAuth = () => {
   }
 
   const signOut = async () => {
+    analytics.reset()
     return client.signOut()
   }
 

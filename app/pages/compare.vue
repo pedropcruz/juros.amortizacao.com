@@ -8,6 +8,7 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const { formatRateType, formatEuriborPeriod } = useFinancial()
+const analytics = useAnalytics()
 
 // Get IDs from query
 const ids = computed(() => {
@@ -105,6 +106,17 @@ const comparisonMetrics = computed(() => {
     totalSavings: mostExpensive.summary.totalPayment - cheapestTotal.summary.totalPayment
   }
 })
+
+// Track view when metrics are ready
+watch(comparisonMetrics, (metrics) => {
+  if (metrics) {
+    analytics.capture('comparison_viewed', {
+      simulation_count: simulations.value?.length,
+      max_monthly_saving: metrics.monthlyDifference,
+      max_total_saving: metrics.totalSavings
+    })
+  }
+}, { once: true })
 
 // Get value class for comparison highlighting
 function getValueClass(simulation: Simulation, field: 'monthlyPayment' | 'totalInterest' | 'totalPayment') {

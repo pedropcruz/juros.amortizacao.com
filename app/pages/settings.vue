@@ -11,6 +11,7 @@ useSeoMeta({
 const config = useRuntimeConfig()
 const checkoutUrl = config.public.lemonSqueezyCheckoutUrl || '#'
 const toast = useToast()
+const analytics = useAnalytics()
 const {
   user,
   changePassword,
@@ -88,6 +89,8 @@ async function handleUpdateName() {
       throw new Error(result.error.message)
     }
 
+    analytics.capture('profile_updated', { type: 'name' })
+
     // Send notification email
     await $fetch('/api/profile/notify-change', {
       method: 'POST',
@@ -141,6 +144,9 @@ async function handleChangeEmail() {
     if (result.error) {
       throw new Error(result.error.message)
     }
+
+    analytics.capture('profile_email_change_requested')
+
     toast.add({
       title: 'Email de verificação enviado',
       description: 'Verifique a sua caixa de entrada para confirmar o novo email.',
@@ -188,6 +194,8 @@ async function handleChangePassword() {
       throw new Error(result.error.message)
     }
 
+    analytics.capture('profile_password_changed')
+
     // Send notification email
     await $fetch('/api/profile/notify-change', {
       method: 'POST',
@@ -225,6 +233,9 @@ async function handleRequestPasswordReset() {
     if (result.error) {
       throw new Error(result.error.message)
     }
+
+    analytics.capture('profile_password_reset_requested')
+
     toast.add({
       title: 'Email enviado',
       description: 'Verifique a sua caixa de entrada para definir uma palavra-passe.',
@@ -245,6 +256,7 @@ async function handleRequestPasswordReset() {
 
 // Link Google account
 async function handleLinkGoogle() {
+  analytics.capture('account_link_attempt', { provider: 'google' })
   try {
     await linkSocial('google')
   } catch {
@@ -274,6 +286,9 @@ async function handleUnlinkAccount(providerId: string) {
     if (result.error) {
       throw new Error(result.error.message)
     }
+
+    analytics.capture('account_unlinked', { provider: providerId })
+
     toast.add({
       title: 'Conta desligada',
       description: 'A conta foi desligada com sucesso.',
@@ -317,6 +332,11 @@ const isPro = computed(() => {
   // WIP: user should have the flag as well
   return false
 })
+
+// Check pro status on mount
+watch(isPro, (val) => {
+  analytics.capture('pro_status_check', { is_pro: val })
+}, { immediate: true })
 
 function formatDate(dateString: string | null): string {
   if (!dateString) return '-'

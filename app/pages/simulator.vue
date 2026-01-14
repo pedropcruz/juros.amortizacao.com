@@ -4,6 +4,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 
 const toast = useToast()
 const { isAuthenticated } = useAuth()
+const analytics = useAnalytics()
 
 // Fetch Euribor rates
 interface EuriborRates {
@@ -96,6 +97,11 @@ const state = reactive({
   fixedRate: 3.5 // Fixed rate during initial period (percentage)
 })
 
+// Analytics for rate type change
+watch(() => state.rateType, (newType) => {
+  analytics.capture('simulator_rate_type_change', { type: newType })
+})
+
 // Update Euribor when auto mode is on or period changes
 function updateEuribor() {
   if (!useAutoEuribor.value || !euriborRates.value) return
@@ -113,7 +119,6 @@ function updateEuribor() {
 watch([() => state.euriborPeriod, useAutoEuribor, euriborRates], () => {
   updateEuribor()
 })
-
 // Helper for decimal inputs (handles , and .)
 function useDecimalInput(source: Ref<number>) {
   const internal = ref(source.value?.toString() ?? '')
@@ -197,6 +202,13 @@ const tanPercentage = computed(() => (tan.value * 100).toFixed(3))
 // Advanced options visibility
 const showAdvanced = ref(false)
 
+// Track advanced toggle
+watch(showAdvanced, (val) => {
+  if (val) {
+    analytics.capture('simulator_advanced_toggle', { action: 'open' })
+  }
+})
+
 // Early repayment simulator visibility
 const showEarlyRepayment = ref(false)
 
@@ -241,14 +253,6 @@ const isLoading = ref(false)
 const error = ref<string | null>(null)
 const resultsSection = ref<HTMLElement | null>(null)
 const simulatorSection = ref<HTMLElement | null>(null)
-const { $posthog } = useNuxtApp()
-
-// Helper to safely capture PostHog events
-function captureEvent(event: string, properties?: Record<string, unknown>) {
-  if (typeof $posthog === 'function') {
-    $posthog()?.capture(event, properties)
-  }
-}
 
 // Table columns
 const columns = [
@@ -264,7 +268,7 @@ const columns = [
 
 function openEarlyRepayment() {
   showEarlyRepayment.value = true
-  captureEvent('early_repayment_opened')
+  analytics.capture('early_repayment_opened')
 }
 
 // Save simulation handler
@@ -306,7 +310,7 @@ async function saveSimulation() {
     showSaveModal.value = false
     simulationName.value = ''
 
-    captureEvent('simulation_saved', {
+    analytics.capture('simulation_saved', {
       principal: state.principal,
       term_years: state.termYears
     })
@@ -314,6 +318,7 @@ async function saveSimulation() {
     const error = e as { statusCode?: number, data?: { code?: string, limit?: number, created?: number } }
 
     if (error.statusCode === 403 && error.data?.code === 'LIFETIME_LIMIT_REACHED') {
+      analytics.capture('limit_reached', { type: 'simulations', limit: error.data.limit })
       toast.add({
         title: 'Limite de simulações atingido',
         description: `Já criou ${error.data.created}/${error.data.limit} simulações. Atualize para Pro para simulações ilimitadas.`,
@@ -321,6 +326,7 @@ async function saveSimulation() {
         icon: 'i-lucide-lock'
       })
     } else {
+      analytics.capture('simulation_save_error', { error: String(e) })
       toast.add({
         title: 'Erro ao guardar',
         description: 'Não foi possível guardar a simulação. Tente novamente.',
@@ -336,6 +342,7 @@ async function saveSimulation() {
 
 function openSaveModal() {
   if (!isAuthenticated.value) {
+    analytics.capture('save_attempt_unauthenticated')
     toast.add({
       title: 'Autenticação necessária',
       description: 'Crie uma conta ou faça login para guardar simulações.',
@@ -381,7 +388,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     result.value = response
     tableRows.value = response.table
 
-    captureEvent('calculation_performed', {
+    analytics.capture('simulator_calculate', {
       principal: event.data.principal,
       term_years: event.data.termYears,
       tan: tan.value,
@@ -392,6 +399,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     await nextTick()
     resultsSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   } catch (e) {
+    analytics.capture('calculation_error', { error: String(e) })
     error.value
       = 'Erro ao calcular a simulação. Por favor, verifique os dados.'
     console.error(e)
@@ -437,6 +445,7 @@ watch(showEarlyRepayment, async (val) => {
               variant="ghost"
               color="neutral"
               icon="i-lucide-folder"
+              class="hidden sm:flex"
             >
               Minhas Simulações
             </UButton>

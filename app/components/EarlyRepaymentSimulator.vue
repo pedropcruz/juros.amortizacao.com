@@ -16,14 +16,7 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { $posthog } = useNuxtApp()
-
-// Helper to safely capture PostHog events
-function captureEvent(event: string, properties?: Record<string, unknown>) {
-  if (typeof $posthog === 'function') {
-    $posthog()?.capture(event, properties)
-  }
-}
+const analytics = useAnalytics()
 
 // Form schema
 const schema = z.object({
@@ -104,7 +97,7 @@ function onSubmit(_event: FormSubmitEvent<Schema>) {
 
   result.value = finalResult
 
-  captureEvent('early_repayment_calculated', {
+  analytics.capture('early_repayment_calculated', {
     repayment_amount: state.repaymentAmount,
     strategy: state.strategy,
     fee_exemption: state.feeExemption,
