@@ -4,6 +4,12 @@ import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import { Resend } from 'resend'
 import * as schema from '../database/schema'
+import {
+  verifyEmailTemplate,
+  resetPasswordTemplate,
+  changeEmailVerificationTemplate,
+  changeEmailNotificationTemplate
+} from './email-templates'
 
 // Create a dedicated postgres client for auth
 const connectionString = process.env.DATABASE_URL
@@ -37,11 +43,7 @@ export const auth = betterAuth({
         from: process.env.EMAIL_FROM || 'Juros <onboarding@resend.dev>',
         to: user.email,
         subject: 'Redefinir palavra-passe - Juros',
-        html: `<p>Olá ${user.name},</p>
-<p>Recebemos um pedido para redefinir a sua palavra-passe.</p>
-<p>Clique no link abaixo para criar uma nova palavra-passe:</p>
-<a href="${url}">Redefinir Palavra-passe</a>
-<p>Se não pediu esta alteração, pode ignorar este email.</p>`
+        html: resetPasswordTemplate(user.name, url)
       })
     },
     async sendEmailVerification({ user, url }: { user: { email: string, name: string }, url: string }) {
@@ -49,9 +51,27 @@ export const auth = betterAuth({
         from: process.env.EMAIL_FROM || 'Juros <onboarding@resend.dev>',
         to: user.email,
         subject: 'Verifique o seu email - Juros',
-        html: `<p>Olá ${user.name},</p>
-<p>Bem-vindo ao Juros! Por favor verifique o seu email para ativar a sua conta.</p>
-<a href="${url}">Verificar Email</a>`
+        html: verifyEmailTemplate(user.name, url)
+      })
+    }
+  },
+  changeEmail: {
+    enabled: true,
+    async sendChangeEmailVerification({ user, newEmail, url }: { user: { email: string, name: string }, newEmail: string, url: string }) {
+      // Send verification to the NEW email
+      await resend.emails.send({
+        from: process.env.EMAIL_FROM || 'Juros <onboarding@resend.dev>',
+        to: newEmail,
+        subject: 'Confirme o seu novo email - Juros',
+        html: changeEmailVerificationTemplate(user.name, newEmail, url)
+      })
+
+      // Notify the OLD email about the change request
+      await resend.emails.send({
+        from: process.env.EMAIL_FROM || 'Juros <onboarding@resend.dev>',
+        to: user.email,
+        subject: 'Pedido de alteracao de email - Juros',
+        html: changeEmailNotificationTemplate(user.name, newEmail)
       })
     }
   },

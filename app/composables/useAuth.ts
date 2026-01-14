@@ -45,6 +45,71 @@ export const useAuth = () => {
     return client.signOut()
   }
 
+  // Change password
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    return client.changePassword({
+      currentPassword,
+      newPassword
+    })
+  }
+
+  // Change email
+  const changeEmail = async (newEmail: string) => {
+    return client.changeEmail({
+      newEmail
+    })
+  }
+
+  // Update user profile
+  const updateUser = async (data: { name?: string; image?: string }) => {
+    return client.updateUser(data)
+  }
+
+  // Link social account
+  const linkSocial = async (provider: 'google') => {
+    return client.linkSocial({
+      provider,
+      callbackURL: '/settings'
+    })
+  }
+
+  // List linked accounts
+  const listAccounts = async () => {
+    return client.listAccounts()
+  }
+
+  // Unlink social account
+  const unlinkAccount = async (providerId: string) => {
+    return client.unlinkAccount({
+      providerId
+    })
+  }
+
+  // Request password reset (sends email)
+  const requestPasswordReset = async (email: string) => {
+    try {
+      const response = await $fetch('/api/auth/request-password-reset', {
+        method: 'POST',
+        body: {
+          email,
+          redirectTo: '/reset-password'
+        }
+      })
+      return { data: response, error: null }
+    } catch (err: unknown) {
+      const error = err as { data?: { message?: string } }
+      return { data: null, error: { message: error.data?.message || 'Erro ao enviar email' } }
+    }
+  }
+
+  // Reset password with token
+  const resetPassword = async (newPassword: string, token: string) => {
+    return client.resetPassword({
+      newPassword,
+      token
+    })
+  }
+
   const isAuthenticated = computed(() => {
     return !!session.value.data?.user
   })
@@ -65,6 +130,14 @@ export const useAuth = () => {
     signIn,
     signUp,
     signInWithGoogle,
-    signOut
+    signOut,
+    changePassword,
+    changeEmail,
+    updateUser,
+    linkSocial,
+    listAccounts,
+    unlinkAccount,
+    requestPasswordReset,
+    resetPassword
   }
 }

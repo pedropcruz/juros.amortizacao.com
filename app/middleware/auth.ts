@@ -1,10 +1,9 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   const { isAuthenticated, isLoading } = useAuth()
 
-  // Wait for auth to initialize
+  // Don't redirect while still loading - the global loading screen handles this
   if (isLoading.value) {
-    // Give it a moment to check session
-    await new Promise(resolve => setTimeout(resolve, 100))
+    return
   }
 
   // If not authenticated, redirect to login
