@@ -54,7 +54,7 @@ export default defineNuxtConfig({
 
   // @ts-expect-error PostHog module type definition mismatch
   posthog: {
-    disabled: process.env.NODE_ENV === 'development' || !process.env.NUXT_PUBLIC_POSTHOG_PUBLIC_KEY,
+    disabled: !process.env.NUXT_PUBLIC_POSTHOG_PUBLIC_KEY,
     publicKey: process.env.NUXT_PUBLIC_POSTHOG_PUBLIC_KEY || 'phc_dummy_key_for_build', // Fallback to avoid build crash
     host: process.env.NUXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com',
     clientConfig: {
