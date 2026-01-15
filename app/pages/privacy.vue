@@ -40,7 +40,11 @@ useHead({
           <section>
             <h3>2. Responsável pelo Tratamento de Dados</h3>
             <p>
-              O responsável pelo tratamento dos seus dados pessoais é a equipa de desenvolvimento do Juros. Para quaisquer questões relacionadas com a privacidade, por favor contacte-nos através do nosso suporte ou widgets de feedback disponíveis na plataforma.
+              O responsável pelo tratamento dos seus dados pessoais é a equipa de desenvolvimento do Juros. Para quaisquer questões relacionadas com a privacidade, por favor contacte-nos através do email:
+              <a
+                href="mailto:suporte@juros.amortizacao.com"
+                class="text-primary-600 dark:text-primary-400 hover:underline"
+              >suporte@juros.amortizacao.com</a>.
             </p>
           </section>
 

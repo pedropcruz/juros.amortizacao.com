@@ -112,7 +112,11 @@ useHead({
           <section>
             <h3>10. Contacto</h3>
             <p>
-              Se tiver alguma dúvida sobre estes Termos, contacte-nos através dos canais de suporte disponíveis na plataforma.
+              Se tiver alguma dúvida sobre estes Termos, contacte-nos através do email:
+              <a
+                href="mailto:suporte@juros.amortizacao.com"
+                class="text-primary-600 dark:text-primary-400 hover:underline"
+              >suporte@juros.amortizacao.com</a>.
             </p>
           </section>
         </div>

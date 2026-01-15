@@ -95,6 +95,20 @@ const { isAuthenticated } = useAuth()
             </p>
           </div>
         </div>
+
+        <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 text-center space-y-2">
+          <p>
+            <strong>Contacto:</strong> <a
+              href="mailto:suporte@juros.amortizacao.com"
+              class="hover:text-primary-500 transition-colors"
+            >suporte@juros.amortizacao.com</a>
+          </p>
+          <p class="max-w-3xl mx-auto">
+            <strong>Isenção de Responsabilidade:</strong> O Juros é uma ferramenta de simulação e literacia financeira.
+            Os resultados apresentados são estimativas e não constituem aconselhamento financeiro, jurídico ou fiscal.
+            Recomendamos sempre a consulta de profissionais qualificados antes de tomar decisões financeiras.
+          </p>
+        </div>
       </div>
     </footer>
 
