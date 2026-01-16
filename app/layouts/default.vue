@@ -25,15 +25,6 @@ const { isAuthenticated } = useAuth()
           <!-- Navigation -->
           <nav class="hidden md:flex items-center gap-1">
             <UButton
-              v-if="isAuthenticated"
-              to="/dashboard"
-              variant="ghost"
-              color="neutral"
-              size="sm"
-            >
-              Dashboard
-            </UButton>
-            <UButton
               to="/simulator"
               variant="ghost"
               color="neutral"
@@ -49,10 +40,48 @@ const { isAuthenticated } = useAuth()
             >
               Taxa de Esforço
             </UButton>
+            <UButton
+              to="/#pricing"
+              variant="ghost"
+              color="neutral"
+              size="sm"
+            >
+              Preços
+            </UButton>
           </nav>
 
           <div class="flex items-center gap-3">
             <UColorModeButton />
+
+            <template v-if="!isAuthenticated">
+              <div class="h-6 w-px bg-gray-200 dark:bg-gray-800 hidden sm:block" />
+              <UButton
+                to="/login"
+                variant="ghost"
+                color="neutral"
+                size="sm"
+                class="hidden sm:flex"
+              >
+                Entrar
+              </UButton>
+              <UButton
+                to="/register"
+                color="primary"
+                variant="solid"
+                size="sm"
+              >
+                Registar
+              </UButton>
+            </template>
+
+            <UButton
+              v-else
+              to="/dashboard"
+              variant="ghost"
+              color="neutral"
+              size="sm"
+              icon="i-lucide-layout-dashboard"
+            />
           </div>
         </div>
       </div>
@@ -78,6 +107,12 @@ const { isAuthenticated } = useAuth()
           </div>
 
           <div class="flex items-center gap-6">
+            <NuxtLink
+              to="/#pricing"
+              class="text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              Preços
+            </NuxtLink>
             <NuxtLink
               to="/terms"
               class="text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
